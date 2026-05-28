@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/json/1.1.1.1"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "status": "success",
+      "countryCode": "pl"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

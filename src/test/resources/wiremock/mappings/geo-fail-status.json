@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/json/9.9.9.9"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "status": "fail",
+      "countryCode": null
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

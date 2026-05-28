@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/json/8.8.8.8"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "status": "success",
+      "countryCode": "US"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
