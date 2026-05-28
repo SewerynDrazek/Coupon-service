@@ -3,7 +3,6 @@ package com.example.coupon.domain.model;
 import com.example.coupon.domain.exception.CouponCountryMismatchException;
 import com.example.coupon.domain.exception.CouponExhaustedException;
 import com.example.coupon.domain.model.vo.Code;
-import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.model.vo.Volume;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,7 +1,5 @@
 package com.example.coupon;
 
-import com.example.coupon.domain.exception.CouponAlreadyUsedException;
-import com.example.coupon.domain.exception.CouponExhaustedException;
 import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.port.GeoLocationPort;
 import com.example.coupon.domain.service.CouponService;
@@ -80,9 +78,8 @@ class CouponConcurrencyIT {
                     startLatch.await();
                     couponService.useCoupon(code, userId, CLIENT_IP);
                     successCount.incrementAndGet();
-                } catch (CouponExhaustedException e) {
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
                 } finally {
                     doneLatch.countDown();
                 }
@@ -117,9 +114,8 @@ class CouponConcurrencyIT {
                     startLatch.await();
                     couponService.useCoupon(code, sharedUserId, CLIENT_IP);
                     successCount.incrementAndGet();
-                } catch (CouponAlreadyUsedException | DataIntegrityViolationException e) {
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
                 } finally {
                     doneLatch.countDown();
                 }
