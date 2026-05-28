@@ -46,7 +46,6 @@ Content-Type: application/json
   "createdDate": "2025-01-01",
   "volume": 100,
   "spent": 0,
-  "remaining": 100,
   "country": "PL"
 }
 ```
@@ -64,17 +63,7 @@ Content-Type: application/json
 
 The country of the caller is resolved from their IP address. Each user may use a given coupon only once.
 
-**Response `200 OK`:**
-```json
-{
-  "code": "SUMMER10",
-  "createdDate": "2025-01-01",
-  "volume": 100,
-  "spent": 1,
-  "remaining": 99,
-  "country": "PL"
-}
-```
+**Response `204 No Content`** (empty body)
 
 **Error responses:**
 
@@ -85,6 +74,28 @@ The country of the caller is resolved from their IP address. Each user may use a
 | 404    | Coupon code not found                      |
 | 409    | Coupon exhausted or already used by user   |
 | 503    | Geo-location service unavailable           |
+
+## Running locally (without Docker)
+
+Start a PostgreSQL instance and activate the `local` Spring profile:
+
+```bash
+# Example: PostgreSQL via Docker only (no full compose stack)
+docker run -d -p 5432:5432 \
+  -e POSTGRES_DB=coupon \
+  -e POSTGRES_USER=coupon \
+  -e POSTGRES_PASSWORD=coupon \
+  postgres:16-alpine
+
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+With the `local` profile active the geo-location HTTP call is replaced by a stub that always returns `PL`, so no requests leave the machine and the circuit breaker is never triggered. This is useful during development when you don't have access to `ip-api.com` or want deterministic country resolution.
+
+| Profile | Geo-location behaviour |
+|---------|------------------------|
+| _(none)_ | Real HTTP call to `ip-api.com`, circuit breaker active |
+| `local` | Stub — always resolves to `PL` |
 
 ## Running tests
 

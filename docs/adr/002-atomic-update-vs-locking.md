@@ -14,6 +14,17 @@ WHERE code = :code AND spent < volume
 
 The number of affected rows is returned: `1` means success, `0` means the coupon is exhausted. No separate SELECT is needed.
 
+## Per-User Limit
+
+The per-user uniqueness constraint is enforced exclusively at the database level
+via a UNIQUE constraint on `(coupon_code, user_id)`. The adapter catches
+`DataIntegrityViolationException` from `saveAndFlush` and translates it to
+`CouponAlreadyUsedException` — no prior SELECT is needed.
+
+Order of operations in `useCoupon`:
+1. `saveUsage` — INSERT with immediate flush; fails fast if user already used the coupon
+2. `incrementSpentIfAvailable` — atomic UPDATE; if coupon is exhausted, usage record is deleted as compensation
+
 ## Alternatives Considered
 
 | Approach                                     | Why rejected                                                                                 |

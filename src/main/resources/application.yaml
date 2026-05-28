@@ -27,6 +27,10 @@ spring:
 geolocation:
   base-url: http://ip-api.com
 
+cache:
+  caffeine:
+    spec: maximumSize=10000,expireAfterWrite=1h
+
 resilience4j:
   circuitbreaker:
     instances:

@@ -7,6 +7,7 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -22,6 +23,7 @@ public class IpApiGeoLocationAdapter implements GeoLocationPort {
     private final CircuitBreaker geoLocationCircuitBreaker;
 
     @Override
+    @Cacheable(value = "geoLocation", key = "#ip")
     public String getCountry(String ip) {
         if (isLocalOrPrivateIp(ip)) {
             log.warn("Blocking request from private/local IP: {}", ip);
