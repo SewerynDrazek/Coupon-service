@@ -49,7 +49,7 @@ public class CouponController {
 
     @Operation(summary = "Use a coupon")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Coupon used successfully"),
+            @ApiResponse(responseCode = "204", description = "Coupon used successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request body",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Request originates from a country not allowed by the coupon",
@@ -62,11 +62,12 @@ public class CouponController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{code}/use")
-    public CouponResponse use(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void use(
             @Parameter(description = "Coupon code", example = "SUMMER10") @PathVariable String code,
             @Valid @RequestBody UseCouponRequest request,
             @ClientIp String clientIp
     ) {
-        return mapper.toResponse(couponService.useCoupon(code, request.userId(), clientIp));
+        couponService.useCoupon(code, request.userId(), clientIp);
     }
 }

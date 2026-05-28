@@ -6,7 +6,6 @@ import com.example.coupon.domain.exception.CouponAlreadyUsedException;
 import com.example.coupon.domain.exception.CouponCountryMismatchException;
 import com.example.coupon.domain.exception.CouponExhaustedException;
 import com.example.coupon.domain.exception.CouponNotFoundException;
-import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.model.Coupon;
 import com.example.coupon.domain.model.vo.Code;
 import com.example.coupon.domain.model.vo.Volume;
@@ -25,6 +24,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -51,7 +51,7 @@ class CouponControllerTest {
     @Test
     void shouldCreateCouponAndReturn201() throws Exception {
         //given:
-        when(couponService.createCoupon(eq(CODE), eq(100L), eq(Country.PL)))
+        when(couponService.createCoupon(eq(CODE), eq(100L), eq("PL")))
                 .thenReturn(buildCoupon(100L, 0L));
 
         //when/then:
@@ -104,18 +104,15 @@ class CouponControllerTest {
     }
 
     @Test
-    void shouldUseCouponAndReturn200() throws Exception {
+    void shouldUseCouponAndReturn204() throws Exception {
         //given:
-        when(couponService.useCoupon(eq(CODE), eq(USER_ID), any()))
-                .thenReturn(buildCoupon(100L, 1L));
+        doNothing().when(couponService).useCoupon(eq(CODE), eq(USER_ID), any());
 
         //when/then:
         mockMvc.perform(post(BASE_URL + "/{code}/use", CODE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("userId", USER_ID))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(CODE))
-                .andExpect(jsonPath("$.spent").value(1));
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -148,7 +145,7 @@ class CouponControllerTest {
     @Test
     void shouldReturn403WhenCountryMismatch() throws Exception {
         //given:
-        doThrow(new CouponCountryMismatchException(CODE, Country.DE, Country.PL))
+        doThrow(new CouponCountryMismatchException(CODE, "DE", "PL"))
                 .when(couponService).useCoupon(eq(CODE), eq(USER_ID), any());
 
         //when/then:
@@ -185,7 +182,7 @@ class CouponControllerTest {
                 .createdDate(LocalDate.now())
                 .volume(new Volume(volume))
                 .spent(spent)
-                .country(Country.PL)
+                .country("PL")
                 .build();
     }
 }

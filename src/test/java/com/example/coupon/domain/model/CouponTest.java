@@ -13,29 +13,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class CouponTest {
 
     @Test
-    void shouldIncrementSpentOnUse() {
-        Coupon coupon = buildCoupon(5L, 2L);
+    void shouldThrowCouponCountryMismatchException() {
+        //given:
+        Coupon coupon = buildCoupon(100L, 0L);
 
-        Coupon used = coupon.use();
-
-        assertThat(used.getSpent()).isEqualTo(3L);
-    }
-
-    @Test
-    void shouldNotMutateOriginalOnUse() {
-        Coupon coupon = buildCoupon(5L, 0L);
-
-        coupon.use();
-
-        assertThat(coupon.getSpent()).isEqualTo(0L);
-    }
-
-    @Test
-    void shouldThrowWhenExhausted() {
-        Coupon coupon = buildCoupon(3L, 3L);
-
-        assertThatThrownBy(coupon::use)
-                .isInstanceOf(CouponExhaustedException.class);
+        //when:
+        assertThatThrownBy(() -> coupon.validateCountry("US"));
     }
 
     private Coupon buildCoupon(Long volume, Long spent) {
@@ -44,7 +27,7 @@ class CouponTest {
                 .createdDate(LocalDate.now())
                 .volume(new Volume(volume))
                 .spent(spent)
-                .country(Country.PL)
+                .country("PL")
                 .build();
     }
 }

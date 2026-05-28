@@ -20,7 +20,6 @@ import java.util.Map;
 
 import com.example.coupon.domain.exception.CountryResolutionException;
 import com.example.coupon.domain.exception.GeoLocationServiceException;
-import com.example.coupon.domain.model.Country;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 
@@ -125,30 +124,27 @@ class CouponIT {
     }
 
     @Test
-    void shouldUseCouponAndReturn200() {
+    void shouldUseCouponAndReturn204() {
         //given:
-        when(geoLocationPort.getCountry(any())).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(any())).thenReturn("PL");
         restTemplate.postForEntity(BASE_URL,
                 Map.of("code", "USE10", "volume", 5, "country", "PL"), Map.class);
 
         //when:
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        ResponseEntity<Void> response = restTemplate.postForEntity(
                 BASE_URL + "/USE10/use",
                 Map.of("userId", "user-1"),
-                Map.class
+                Void.class
         );
 
         //then:
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
-                .containsEntry("code", "USE10")
-                .containsEntry("spent", 1);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
     @Test
     void shouldReturn404WhenCouponNotFound() {
         //given:
-        when(geoLocationPort.getCountry(any())).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(any())).thenReturn("PL");
 
         //when:
         ResponseEntity<Map> response = restTemplate.postForEntity(
@@ -165,7 +161,7 @@ class CouponIT {
     @Test
     void shouldReturn409WhenCouponExhausted() {
         //given:
-        when(geoLocationPort.getCountry(any())).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(any())).thenReturn("PL");
         restTemplate.postForEntity(BASE_URL,
                 Map.of("code", "EXHAUST", "volume", 1, "country", "PL"), Map.class);
         restTemplate.postForEntity(BASE_URL + "/EXHAUST/use",
@@ -185,7 +181,7 @@ class CouponIT {
     @Test
     void shouldReturn409WhenCouponAlreadyUsed() {
         //given:
-        when(geoLocationPort.getCountry(any())).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(any())).thenReturn("PL");
         restTemplate.postForEntity(BASE_URL,
                 Map.of("code", "DUPUSE", "volume", 10, "country", "PL"), Map.class);
         restTemplate.postForEntity(BASE_URL + "/DUPUSE/use",
@@ -205,7 +201,7 @@ class CouponIT {
     @Test
     void shouldReturn403WhenCountryMismatch() {
         //given:
-        when(geoLocationPort.getCountry(any())).thenReturn(Country.DE);
+        when(geoLocationPort.getCountry(any())).thenReturn("DE");
         restTemplate.postForEntity(BASE_URL,
                 Map.of("code", "GEOMIS", "volume", 10, "country", "PL"), Map.class);
 

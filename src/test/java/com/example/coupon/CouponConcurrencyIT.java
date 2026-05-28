@@ -1,6 +1,5 @@
 package com.example.coupon;
 
-import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.port.GeoLocationPort;
 import com.example.coupon.domain.service.CouponService;
 import com.example.coupon.infrastructure.persistence.repository.CouponJpaRepository;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -49,7 +47,7 @@ class CouponConcurrencyIT {
 
     @BeforeEach
     void setUp() {
-        when(geoLocationPort.getCountry(any())).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(any())).thenReturn("PL");
     }
 
     @AfterEach
@@ -64,7 +62,7 @@ class CouponConcurrencyIT {
         int volume = 5;
         int threads = 20;
         String code = "RACE-VOLUME";
-        couponService.createCoupon(code, (long) volume, Country.PL);
+        couponService.createCoupon(code, (long) volume, "PL");
 
         AtomicInteger successCount = new AtomicInteger();
         CountDownLatch startLatch = new CountDownLatch(1);
@@ -101,7 +99,7 @@ class CouponConcurrencyIT {
         int threads = 10;
         String code = "RACE-USER";
         String sharedUserId = "shared-user";
-        couponService.createCoupon(code, 100L, Country.PL);
+        couponService.createCoupon(code, 100L, "PL");
 
         AtomicInteger successCount = new AtomicInteger();
         CountDownLatch startLatch = new CountDownLatch(1);

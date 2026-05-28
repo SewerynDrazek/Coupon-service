@@ -2,7 +2,6 @@ package com.example.coupon.infrastructure.geolocation;
 
 import com.example.coupon.domain.exception.CountryResolutionException;
 import com.example.coupon.domain.exception.GeoLocationServiceException;
-import com.example.coupon.domain.model.Country;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -46,10 +45,10 @@ class IpApiGeoLocationAdapterTest {
     @Test
     void shouldReturnCountryCodeOnSuccess() {
         //when:
-        Country result = adapter.getCountry("8.8.8.8");
+        String result = adapter.getCountry("8.8.8.8");
 
         //then:
-        assertThat(result).isEqualTo(Country.US);
+        assertThat(result).isEqualTo("US");
     }
 
     @Test

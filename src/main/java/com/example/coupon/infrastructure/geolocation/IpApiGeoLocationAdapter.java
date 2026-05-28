@@ -2,7 +2,6 @@ package com.example.coupon.infrastructure.geolocation;
 
 import com.example.coupon.domain.exception.CountryResolutionException;
 import com.example.coupon.domain.exception.GeoLocationServiceException;
-import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.port.GeoLocationPort;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -21,7 +20,7 @@ public class IpApiGeoLocationAdapter implements GeoLocationPort {
     private final CircuitBreaker geoLocationCircuitBreaker;
 
     @Override
-    public Country getCountry(String ip) {
+    public String getCountry(String ip) {
         if (isLocalOrPrivateIp(ip)) {
             log.warn("Blocking request from private/local IP: {}", ip);
             throw new CountryResolutionException(ip);
@@ -37,19 +36,19 @@ public class IpApiGeoLocationAdapter implements GeoLocationPort {
         }
     }
 
-    private Country callApi(String ip) {
+    private String callApi(String ip) {
         IpApiResponse response = geoLocationRestClient.get()
                 .uri("/json/{ip}?fields=status,countryCode", ip)
                 .retrieve()
                 .body(IpApiResponse.class);
 
         if (response != null && "success".equals(response.status()) && response.countryCode() != null) {
-            try {
-                return Country.fromCode(response.countryCode());
-            } catch (IllegalArgumentException e) {
-                log.warn("Geo-location API returned unknown country code for IP {}: {}", ip, response.countryCode());
+            String code = response.countryCode().toUpperCase();
+            if (code.length() != 2) {
+                log.warn("Geo-location API returned invalid country code for IP {}: {}", ip, response.countryCode());
                 throw new GeoLocationServiceException(ip, null);
             }
+            return code;
         }
         log.warn("Geo-location lookup returned non-success for IP {}: {}", ip, response);
         throw new GeoLocationServiceException(ip, null);

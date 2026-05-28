@@ -4,7 +4,6 @@ import com.example.coupon.domain.exception.CouponAlreadyUsedException;
 import com.example.coupon.domain.exception.CouponCountryMismatchException;
 import com.example.coupon.domain.exception.CouponExhaustedException;
 import com.example.coupon.domain.exception.CouponNotFoundException;
-import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.model.Coupon;
 import com.example.coupon.domain.model.vo.Code;
 import com.example.coupon.domain.model.vo.UserId;
@@ -27,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +55,7 @@ class CouponServiceTest {
                 .createdDate(LocalDate.now())
                 .volume(new Volume(10L))
                 .spent(0L)
-                .country(Country.PL)
+                .country("PL")
                 .build();
     }
 
@@ -65,7 +65,7 @@ class CouponServiceTest {
         when(couponRepository.save(any())).thenReturn(coupon);
 
         //when:
-        Coupon result = couponService.createCoupon(RAW_CODE, 10L, Country.PL);
+        Coupon result = couponService.createCoupon(RAW_CODE, 10L, "PL");
 
         //then:
         assertThat(result).isEqualTo(coupon);
@@ -75,16 +75,14 @@ class CouponServiceTest {
     @Test
     void shouldUseCouponSuccessfully() {
         //given:
-        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn("PL");
         when(couponRepository.findByCode(code)).thenReturn(Optional.of(coupon));
-        when(couponUsageRepository.existsUsage(eq(code), eq(userId))).thenReturn(false);
         when(couponRepository.incrementSpentIfAvailable(code)).thenReturn(1);
 
         //when:
-        Coupon result = couponService.useCoupon(RAW_CODE, RAW_USER_ID, CLIENT_IP);
+        couponService.useCoupon(RAW_CODE, RAW_USER_ID, CLIENT_IP);
 
         //then:
-        assertThat(result.getSpent()).isEqualTo(1L);
         verify(couponUsageRepository).saveUsage(eq(code), eq(userId), any());
     }
 
@@ -103,7 +101,7 @@ class CouponServiceTest {
     @Test
     void shouldThrowWhenCountryMismatch() {
         //given:
-        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn(Country.DE);
+        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn("DE");
         when(couponRepository.findByCode(code)).thenReturn(Optional.of(coupon));
 
         //when:
@@ -116,9 +114,10 @@ class CouponServiceTest {
     @Test
     void shouldThrowWhenCouponAlreadyUsed() {
         //given:
-        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn("PL");
         when(couponRepository.findByCode(code)).thenReturn(Optional.of(coupon));
-        when(couponUsageRepository.existsUsage(eq(code), eq(userId))).thenReturn(true);
+        doThrow(new CouponAlreadyUsedException(RAW_CODE, RAW_USER_ID))
+                .when(couponUsageRepository).saveUsage(eq(code), eq(userId), any());
 
         //when:
         ThrowingCallable action = () -> couponService.useCoupon(RAW_CODE, RAW_USER_ID, CLIENT_IP);
@@ -130,9 +129,8 @@ class CouponServiceTest {
     @Test
     void shouldThrowWhenCouponExhausted() {
         //given:
-        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn(Country.PL);
+        when(geoLocationPort.getCountry(CLIENT_IP)).thenReturn("PL");
         when(couponRepository.findByCode(code)).thenReturn(Optional.of(coupon));
-        when(couponUsageRepository.existsUsage(eq(code), eq(userId))).thenReturn(false);
         when(couponRepository.incrementSpentIfAvailable(code)).thenReturn(0);
 
         //when:

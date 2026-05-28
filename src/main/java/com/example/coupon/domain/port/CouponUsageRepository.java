@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public interface CouponUsageRepository {
 
-    boolean existsUsage(Code couponCode, UserId userId);
-
     void saveUsage(Code couponCode, UserId userId, LocalDateTime usedAt);
+
+    void deleteUsage(Code couponCode, UserId userId);
 }

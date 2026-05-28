@@ -1,9 +1,7 @@
 package com.example.coupon.domain.service;
 
-import com.example.coupon.domain.exception.CouponAlreadyUsedException;
 import com.example.coupon.domain.exception.CouponExhaustedException;
 import com.example.coupon.domain.exception.CouponNotFoundException;
-import com.example.coupon.domain.model.Country;
 import com.example.coupon.domain.model.Coupon;
 import com.example.coupon.domain.model.vo.Code;
 import com.example.coupon.domain.model.vo.UserId;
@@ -29,14 +27,15 @@ public class CouponService {
     private final GeoLocationPort geoLocationPort;
 
     @Transactional
-    public Coupon createCoupon(String code, Long volume, Country country) {
-        log.info("Creating coupon: code={}, volume={}, country={}", code, volume, country);
+    public Coupon createCoupon(String code, Long volume, String country) {
+        String normalizedCountry = country.toUpperCase();
+        log.info("Creating coupon: code={}, volume={}, country={}", code, volume, normalizedCountry);
         Coupon coupon = Coupon.builder()
                 .code(new Code(code))
                 .createdDate(LocalDate.now())
                 .volume(new Volume(volume))
                 .spent(0L)
-                .country(country)
+                .country(normalizedCountry)
                 .build();
 
         Coupon saved = couponRepository.save(coupon);
@@ -45,7 +44,7 @@ public class CouponService {
     }
 
     @Transactional
-    public Coupon useCoupon(String rawCode, String rawUserId, String clientIp) {
+    public void useCoupon(String rawCode, String rawUserId, String clientIp) {
         Code code = new Code(rawCode);
         UserId userId = new UserId(rawUserId);
         log.info("Coupon use attempt: code={}, userId={}, clientIp={}", code.value(), userId.value(), clientIp);
@@ -56,23 +55,19 @@ public class CouponService {
                     return new CouponNotFoundException(code.value());
                 });
 
-        Country clientCountry = geoLocationPort.getCountry(clientIp);
+        String clientCountry = geoLocationPort.getCountry(clientIp);
 
         coupon.validateCountry(clientCountry);
+        couponUsageRepository.saveUsage(code, userId, LocalDateTime.now());
+        incrementSpent(code, userId);
+        log.info("Coupon used successfully: code={}, userId={}", code.value(), userId.value());
+    }
 
-        if (couponUsageRepository.existsUsage(coupon.getCode(), userId)) {
-            log.warn("Coupon already used: code={}, userId={}", code.value(), userId.value());
-            throw new CouponAlreadyUsedException(code.value(), userId.value());
-        }
-
-        if (couponRepository.incrementSpentIfAvailable(coupon.getCode()) == 0) {
+    private void incrementSpent(Code code, UserId userId) {
+        if (couponRepository.incrementSpentIfAvailable(code) == 0) {
             log.warn("Coupon exhausted: code={}", code.value());
+            couponUsageRepository.deleteUsage(code, userId);
             throw new CouponExhaustedException(code.value());
         }
-
-        couponUsageRepository.saveUsage(coupon.getCode(), userId, LocalDateTime.now());
-        log.info("Coupon used successfully: code={}, userId={}", code.value(), userId.value());
-
-        return coupon.use();
     }
 }
