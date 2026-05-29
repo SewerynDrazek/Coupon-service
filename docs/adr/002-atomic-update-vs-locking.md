@@ -1,4 +1,4 @@
-# ADR-002: Atomic SQL UPDATE for Concurrency Controct
+# ADR-002: Atomic SQL UPDATE for Concurrency Contract
 
 ## Context
 Coupon volume must not be exceeded under concurrent requests ("first come, first served"). Multiple application instances may run simultaneously, so the solution must be correct across processes without shared in-memory state.
