@@ -24,7 +24,7 @@ class IpApiGeoLocationAdapterTest {
 
     @RegisterExtension
     static WireMockExtension wm = WireMockExtension.newInstance()
-            .options(wireMockConfig().usingFilesUnderClasspath("wiremock"))
+            .options(wireMockConfig().dynamicPort().usingFilesUnderClasspath("wiremock"))
             .configureStaticDsl(true)
             .build();
 

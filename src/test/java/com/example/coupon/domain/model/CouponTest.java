@@ -1,13 +1,11 @@
 package com.example.coupon.domain.model;
 
-import com.example.coupon.domain.exception.CouponExhaustedException;
 import com.example.coupon.domain.model.vo.Code;
 import com.example.coupon.domain.model.vo.Volume;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CouponTest {
