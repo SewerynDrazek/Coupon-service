@@ -26,6 +26,8 @@ spring:
 
 geolocation:
   base-url: http://ip-api.com
+  read-timeout: 3000
+  connect-timeout: 2000
 
 cache:
   caffeine:
