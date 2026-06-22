@@ -1,6 +1,7 @@
 package com.example.coupon.api.resolver;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +13,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,13 +67,14 @@ class ClientIpArgumentResolverTest {
     }
 
     @Test
-    void shouldReturnNullWhenHttpServletRequestIsUnavailable() {
+    void shouldThrowIllegalStateExceptionWhenHttpServletRequestIsUnavailable() {
         //given:
         when(webRequest.getNativeRequest(HttpServletRequest.class)).thenReturn(null);
 
         //when:
+        ThrowableAssert.ThrowingCallable action = () -> resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
         //then:
-        assertThat(resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory)).isNull();
+        assertThatThrownBy(action).isInstanceOf(IllegalStateException.class);
     }
 
     @Test

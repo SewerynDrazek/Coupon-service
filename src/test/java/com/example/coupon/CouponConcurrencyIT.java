@@ -88,7 +88,7 @@ class CouponConcurrencyIT {
         startLatch.countDown();
 
         //then:
-        assertThat(doneLatch.await(15, TimeUnit.SECONDS)).isTrue();
+        assertThat(doneLatch.await(5, TimeUnit.SECONDS)).isTrue();
         executor.shutdown();
         assertThat(successCount.get()).isEqualTo(volume);
     }
@@ -124,7 +124,7 @@ class CouponConcurrencyIT {
         startLatch.countDown();
 
         //then:
-        assertThat(doneLatch.await(15, TimeUnit.SECONDS)).isTrue();
+        assertThat(doneLatch.await(5, TimeUnit.SECONDS)).isTrue();
         executor.shutdown();
         assertThat(successCount.get()).isEqualTo(1);
     }
